@@ -1,0 +1,40 @@
+BAJENARU CATALIN 331CB
+
+
+	Parsare:
+Pt a rezolva parsarea unui string intr-un regex am folosit ANTLR4; am definit o gramatica si am scris codul din Listener pt a
+obtine un obiect de tip RegEx. In vederea construirii regexului final am utilizat o stiva in care am stocat sub-expresiile pe
+care le pot scoate din stiva atunci cand vine momentul compunerii lor intr-un regex ce le inglobeaza (de exemplu concatenare).
+Regula de start a gramatici este "start" care produce "expr" si EOF; expr fiind regula principala a gramaticii;
+"expr" cuprinde cazurile: simbol, nr, concatenare, alternare, (expr) etc. Regulile "inacco" si "interval" corespund tipurilor
+de regex range respectiv symbol_set.
+
+
+	Verificarea acceptarii unui cuvant:
+
+Am urmat pasii: regex -> expresie regulata -> NFA -> DFA -> Simuleaza DFA-ul pt a determina daca cuvantul e acceptat.
+M-am folosit de clasele: NFA, DFA, RegularExpression si RegEx.
+
+Transformarea regexului intr-o expresie regulata(regex_to_re): Am descompus in mod recursiv in partile componente regexul, iar
+apoi am asamblat direct(cazul de baza fiind SYMBOL_SIMPLE) acele parti care au o reprezentare identica din regex in 
+expresie regulata. Pentru cazurile: plus, star, maybe, symbol_set, range, symbol_any am adaugat modificarile necesare
+pentru a realiza echivalenta corecta.
+
+Transformarea expresiei regulate in NFA (re_to_nfa) : A constat in implementarea algoritmului lui Thompson. Din nou
+maniera in care lucreaza functia este recursiva. Se sparge expresia regulata in partile sale componente pana se ajunge
+la un caz de baza (o expresie regulata dintr-un singur simbol), apoi se imbina nfa-urile obtinute din ele. Pentru a
+avea o transformare corecta sunt utilizate functiile rename_states() si new_states() astfel incat starile unui nfa
+sa nu se colizioneze cu starile celuilalt.
+
+Transformarea unui NFA intr-un DFA (nfa_to_dfa): Pentru a realiza transformarea am mai folosit 2 functii:
+eps_closure => primeste un nfa si o stare si returneaza un set cu starile in care se poate ajunge prin tranzitii pe epsilon
+symb_closure => analog, cu mentiunea ca tranzitiile sa fie efectuate pe simbolul primit ca argument sau epsilon
+Starea initiala a dfa-ului va fi eps_closure(nfa, q0) , unde q0 este starea de inceput a nfa-ului. Folosesc un dictionar
+in care cheile sunt tuplurile cu starile din nfa si valoarea corespunzatoare este starea din dfa. Pentru a calcula
+tranzitiile din dfa fac un fel de BFS in care verific pe rand simbolurile din alfabet daca din starea curenta duc
+intr-o alta stare neexplorata(adica un tuplu format din starile nfa-ului). La final parcug dictionarul pentru a determina
+toate starile dfa-ului si care dintre acestea sunt cele finale; de asemenea starea 0 reprezinta sink stateul
+
+Simularea DFA-ului: Iterez caracterele cuvantului si verific daca exista o tranzitie pentru caracterul actual:
+daca da atunci starea actuala devine cea in care duce tranzitia, daca nu functia afiseaza False. La final verific daca
+starea actuala in care s-a ajuns dupa iterarea cuvantului este una finala.
